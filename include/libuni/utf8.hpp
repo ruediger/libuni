@@ -11,6 +11,7 @@
 #define LIBUNI_UTF8_HPP
 
 #include "codepoint.hpp"
+#include <type_traits>
 
 namespace libuni {
   typedef unsigned char char8_t; // consistency with C++0x' char16_t/char32_t
@@ -93,6 +94,134 @@ namespace libuni {
     }
     ++i;
     return utf_ok;
+  }
+
+  namespace helper {
+    template<typename T, bool is_unsigned = std::is_unsigned<T>::value>
+    struct is_larger_zero_ {
+      static inline bool check(T t) {
+        return 0x00 <= t;
+      }
+    };
+
+    template<typename T>
+    struct is_larger_zero_<T, true> {
+      static inline bool check(T) {
+        return true;
+      }
+    };
+
+    template<typename T>
+    bool is_larger_zero(T t) { // use this to avoid warnings
+      return is_larger_zero_<T>::check(t);
+    }
+  }
+
+  template<typename I>
+  bool is_wellformed(I begin, I end) {
+    for(I i = begin; i != end; ++i) {
+      if(helper::is_larger_zero(*i) and *i <= 0x7F) {
+      }
+      else if(0xC2 <= *i and *i <= 0xDF) {
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if(*i == 0xE0) {
+        ++i;
+        if(i == end or not (0xA0 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if( (0xE1 <= *i and *i <= 0xEC) or (0xEE < *i and *i < 0xEF) ) {
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if(*i == 0xED) {
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0x9F)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if(*i == 0xF0) {
+        ++i;
+        if(i == end or not (0x90 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if(0xF1 < *i and *i < 0xF3) {
+        ++i;
+        if(i == end or not (0x90 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else if(*i == 0xF4) {
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0x8F)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+        ++i;
+        if(i == end or not (0x80 <= *i and *i <= 0xBF)) {
+          return false;
+        }
+      }
+      else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  //// Bytes required to represent a codepoint
+  inline
+  std::size_t bytes_required(codepoint_t cp) {
+    if(cp < 0x7F) {
+      return 1;
+    }
+    else if(cp < 0x7FF) {
+      return 2;
+    }
+    else if(cp < 0xFFFF) {
+      return 3;
+    }
+    else {
+      return 4;
+    }
   }
 
   } // namespace utf8
