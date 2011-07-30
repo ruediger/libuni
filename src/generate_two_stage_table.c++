@@ -208,6 +208,9 @@ using namespace libuni;
 #ifndef UNIDATA_VERSION
 #define UNIDATA_VERSION
 #endif
+#ifndef OUTDIR
+#define OUTDIR "src/generated/"
+#endif
 
 //#define TEST
 
@@ -277,7 +280,7 @@ int main() {
   std::size_t shift;
   splitbins(qc, t1, t2, shift);
 
-  std::ofstream out("normalization_database.hpp");
+  std::ofstream out(OUTDIR "normalization_database.hpp");
   out <<
     "#ifndef LIBUNI_GENERATED_NORMALIZATION_DATABASE_HPP\n"
     "#define LIBUNI_GENERATED_NORMALIZATION_DATABASE_HPP\n\n"
@@ -294,7 +297,7 @@ int main() {
   print_list(out, t2);
   out << "};\n\n";
 
-  out << "} // namespace libuni\n";
+  out << "} // namespace libuni\n\n#endif\n";
 }
 
 #else
