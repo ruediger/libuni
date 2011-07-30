@@ -202,11 +202,11 @@ namespace libuni {
 }
 using namespace libuni;
 
-#ifndef UNIDATA
-#define UNIDATA "UCD/"
+#ifndef UCD_PATH
+#define UCD_PATH "UCD/"
 #endif
-#ifndef UNIDATA_VERSION
-#define UNIDATA_VERSION
+#ifndef UCD_VERSION
+#define UCD_VERSION
 #endif
 #ifndef OUTDIR
 #define OUTDIR "src/generated/"
@@ -217,9 +217,9 @@ using namespace libuni;
 #ifndef TEST
 
 int main() {
-  std::ifstream in(UNIDATA "DerivedNormalizationProps" UNIDATA_VERSION ".txt");
-  if(!in) {
-    std::cerr << "Failed to open: `" << UNIDATA "DerivedNormalizationProps" UNIDATA_VERSION ".txt" << "'\n";
+  std::ifstream in(UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt");
+  if(not in) {
+    std::cerr << "Failed to open: `" UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt'\n";
     return 1;
   }
   std::vector<std::uint8_t> qc(0xff0000, 0x00);
@@ -230,6 +230,9 @@ int main() {
     else if(line->size() == 2) {
     }
     else if(line->size() == 3) {
+      if((*line)[2].empty()) {
+        continue;
+      }
       std::uint8_t value = Yes;
       switch((*line)[2][0]) {
       case 'N':
@@ -261,7 +264,7 @@ int main() {
         codepoint_t i = string_to_codepoint(codepoint.begin(), codepoint.begin() + dot);
         if(dot+2 > codepoint.size()) { // bad code range format!
           std::cerr << "WARNING: Bad Code Range Format `" << codepoint << "'\n";
-          break;
+          return 1;
         }
         codepoint_t const end = string_to_codepoint(codepoint.begin() + dot, codepoint.end());
         for(; i != end; ++i) {
@@ -281,6 +284,10 @@ int main() {
   splitbins(qc, t1, t2, shift);
 
   std::ofstream out(OUTDIR "normalization_database.hpp");
+  if(not out) {
+    std::cerr << "Failed to open: `" OUTDIR "normalization_database.hpp'\n";
+    return 1;
+  }
   out <<
     "#ifndef LIBUNI_GENERATED_NORMALIZATION_DATABASE_HPP\n"
     "#define LIBUNI_GENERATED_NORMALIZATION_DATABASE_HPP\n\n"
@@ -337,5 +344,7 @@ int main() { // DBG
     assert((*k)[1] == "e");
     assert((*k)[2] == "f");
   }
+
+  return 1;
 }
 #endif

@@ -46,6 +46,17 @@ set(CMAKE_C_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
 set(BUILD_TESTS True)
 
+option(UCD_PATH "Path to Unicode Character Database (UCD)" "${libuni_SOURCE_DIR}/UCD/")
+option(UCD_VERSION "Version suffix of UCD files.")
+if(NOT UCD_PATH)
+  set(UCD_PATH "${libuni_SOURCE_DIR}/UCD/")
+endif()
+if(EXISTS ${UCD_PATH})
+  message(STATUS "Unicode Character Database Path: ${UCD_PATH}")
+else()
+  message(SEND_ERROR "You need to download the Unicode Character Database (UCD) from http://www.unicode.org/Public/UNIDATA/ or set -DUCD_PATH to the UCD path")
+endif()
+
 find_package(Boost 1.40.0 COMPONENTS unit_test_framework)
 if(NOT Boost_FOUND)
   message(STATUS "Boost not found! (No Unit Tests)")
