@@ -25,7 +25,7 @@ BOOST_AUTO_TEST_CASE(test_nextcodepoint_single) {
     libuni::char8_t const *iter = strs[i];
     libuni::char8_t const *end = iter + std::strlen((char const*)iter);
     libuni::codepoint_t cp;
-    libuni::utf_status s = libuni::next_codepoint(iter, end, cp);
+    libuni::utf_status s = libuni::utf8::next_codepoint(iter, end, cp);
     BOOST_CHECK_EQUAL(s, libuni::utf_ok);
     BOOST_CHECK_EQUAL(cp, cps[i]);
     BOOST_CHECK_EQUAL(iter, end);
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(test_nextcodepoint_incomplete) {
   libuni::char8_t const *const orig_iter = iter;
   libuni::char8_t const *const end = str + 1;
   libuni::codepoint_t cp;
-  libuni::utf_status s = libuni::next_codepoint(iter, end, cp);
+  libuni::utf_status s = libuni::utf8::next_codepoint(iter, end, cp);
   BOOST_CHECK_EQUAL(s, libuni::incomplete_sequence);
   BOOST_CHECK_EQUAL(iter, orig_iter);
 }
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(test_nextcodepoint_invalid) {
   libuni::char8_t const *const orig_iter = iter;
   libuni::char8_t const *const end = str + 2;
   libuni::codepoint_t cp;
-  libuni::utf_status s = libuni::next_codepoint(iter, end, cp);
+  libuni::utf_status s = libuni::utf8::next_codepoint(iter, end, cp);
   BOOST_CHECK_EQUAL(s, libuni::invalid_sequence);
   BOOST_CHECK_EQUAL(iter, orig_iter);
 }

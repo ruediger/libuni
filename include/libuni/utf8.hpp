@@ -17,6 +17,8 @@ namespace libuni {
 
   enum utf_status { utf_ok, incomplete_sequence, invalid_sequence };
 
+  namespace utf8 {
+
   template<typename I>
   utf_status
   next_codepoint(I &i, I end, codepoint_t &cp) {
@@ -86,12 +88,14 @@ namespace libuni {
       else {
         return incomplete_sequence;
       }
-    case 0: // TODO?
+    case 0:
       break;
     }
     ++i;
     return utf_ok;
   }
+
+  } // namespace utf8
 }
 
 #endif
