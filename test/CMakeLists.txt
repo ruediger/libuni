@@ -15,7 +15,8 @@ foreach(Test_Source ${Tests})
     "-DBOOST_TEST_DYN_LINK -DBOOST_TEST_MODULE=${TEST_NAME}")
   target_link_libraries(
     ${Test_Out}
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    uni)
 endforeach()
 
 endif()

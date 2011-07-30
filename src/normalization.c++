@@ -11,25 +11,21 @@ namespace libuni {
     return quick_check[index];
   }
 
-  inline
   quick_check_t
   is_allowed_nfd(codepoint_t cp) {
     return static_cast<quick_check_t>(is_allowed(cp) & 0x3);
   }
 
-  inline
   quick_check_t
   is_allowed_nfkd(codepoint_t cp) {
     return static_cast<quick_check_t>(is_allowed(cp) & 0xC);
   }
 
-  inline
   quick_check_t
   is_allowed_nfc(codepoint_t cp) {
     return static_cast<quick_check_t>(is_allowed(cp) & 0x30);
   }
 
-  inline
   quick_check_t
   is_allowed_nfkc(codepoint_t cp) {
     return static_cast<quick_check_t>(is_allowed(cp) & 0xC0);
