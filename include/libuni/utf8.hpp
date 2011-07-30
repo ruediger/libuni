@@ -20,7 +20,7 @@ namespace libuni {
   template<typename I>
   utf_status
   next_codepoint(I &i, I end, codepoint_t &cp) {
-    switch(i - end) {
+    switch(end - i) {
     default:
     case 4:
       if( (*i & 0xF0) == 0xF0 ) {
