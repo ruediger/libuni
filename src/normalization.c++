@@ -4,11 +4,11 @@
 #include <cstdint>
 
 namespace libuni {
-  inline 
+  //  inline 
   std::uint8_t
   is_allowed(codepoint_t cp) {
     std::size_t const index = quick_check_index[cp >> quick_check_shift];
-    return quick_check[index];
+    return quick_check[(index << quick_check_shift) + (cp & ( (1 << quick_check_shift) - 1))];
   }
 
   quick_check_t

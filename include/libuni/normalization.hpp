@@ -22,6 +22,9 @@ namespace libuni {
     No
   };
 
+  std::uint8_t
+  is_allowed(codepoint_t cp);
+
   quick_check_t
   is_allowed_nfd(codepoint_t cp);
 

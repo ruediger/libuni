@@ -5,74 +5,75 @@
 #include <string>
 #include <cstdint>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <boost/optional.hpp>
 #include <boost/functional/hash.hpp>
 
-namespace libuni {
+namespace {
   typedef std::uint32_t codepoint_t;
 
-  namespace {
-    template<typename I>
-    codepoint_t string_to_codepoint(I begin, I end) {
-      codepoint_t ret = 0x00;
-      for(; begin != end; ++begin) {
-        if('0' <= *begin and *begin <= '9') {
-          ret = ret * 0x10 + *begin - '0';
-        }
-        else if('A' <= *begin and *begin <= 'F') {
-          ret = ret * 0x10 + *begin - 'A' + 0xa;
-        }
-        else if('a' <= *begin and *begin <= 'f') {
-          ret = ret * 0x10 + *begin - 'a' + 0xa;
-        }
+  template<typename I>
+  codepoint_t
+  string_to_codepoint(I begin, I end) {
+    codepoint_t ret = 0x00;
+    for(; begin != end; ++begin) {
+      if('0' <= *begin and *begin <= '9') {
+        ret = ret * 0x10 + *begin - '0';
       }
-      return ret;
+      else if('A' <= *begin and *begin <= 'F') {
+        ret = ret * 0x10 + *begin - 'A' + 0xa;
+      }
+      else if('a' <= *begin and *begin <= 'f') {
+        ret = ret * 0x10 + *begin - 'a' + 0xa;
+      }
     }
+    return ret;
+  }
 
-    template<typename I>
-    std::string
-    create_trimmed_string(I lhs, I rhs) {
-      while(lhs != rhs and std::isspace(*lhs))
-        ++lhs;
-      if(lhs == rhs)
-        return std::string();
+  template<typename I>
+  std::string
+  create_trimmed_string(I lhs, I rhs) {
+    while(lhs != rhs and std::isspace(*lhs))
+      ++lhs;
+    if(lhs == rhs)
+      return std::string();
+    --rhs;
+    while(rhs != lhs and std::isspace(*rhs))
       --rhs;
-      while(rhs != lhs and std::isspace(*rhs))
-        --rhs;
-      ++rhs;
-      return std::string(lhs, rhs);
-    }
+    ++rhs;
+    return std::string(lhs, rhs);
+  }
 
-    // Data files are in UTF-8 but non-ASCII characters only in comments (UAX#44: 4.29)
-    boost::optional<std::vector<std::string>> parse_line(std::istream &in) {
-      std::string line;
-      if(!std::getline(in, line) or line.empty() or line[0] == '#') {
-        return boost::none;
-      }
-      std::string::const_iterator i = line.begin();
-      std::string::const_iterator const end = line.end();
-      std::vector<std::string> properties;
-      for(std::string::const_iterator from = i;; ++i) {
-        if(*i == ';') {
-          properties.push_back(create_trimmed_string(from, i));
-          from = i;
-          ++from;
-        }
-        else if(i == end and from != end) {
-          properties.push_back(create_trimmed_string(from, end));
-          break;
-        }
-        else if(*i == '#') { // comment
-          std::string const s = create_trimmed_string(from, i);
-          if(not s.empty()) {
-            properties.push_back(s);
-          }
-          break;
-        }
-      }
-      return properties;
+  // Data files are in UTF-8 but non-ASCII characters only in comments (UAX#44: 4.29)
+  boost::optional<std::vector<std::string>>
+  parse_line(std::istream &in) {
+    std::string line;
+    if(!std::getline(in, line) or line.empty() or line[0] == '#') {
+      return boost::none;
     }
+    std::string::const_iterator i = line.begin();
+    std::string::const_iterator const end = line.end();
+    std::vector<std::string> properties;
+    for(std::string::const_iterator from = i;; ++i) {
+      if(*i == ';') {
+        properties.push_back(create_trimmed_string(from, i));
+        from = i;
+        ++from;
+      }
+      else if(i == end and from != end) {
+        properties.push_back(create_trimmed_string(from, end));
+        break;
+      }
+      else if(*i == '#') { // comment
+        std::string const s = create_trimmed_string(from, i);
+        if(not s.empty()) {
+          properties.push_back(s);
+        }
+        break;
+      }
+    }
+    return properties;
   }
 
   template<typename Int>
@@ -96,20 +97,39 @@ namespace libuni {
     return m;
   }
 
-  template<typename Cont>
-  std::size_t getsize(Cont const &ct) {
-    typename Cont::value_type const max = container_max(ct);
-    if(max <= 0xFF)
+  template<typename T>
+  struct getsize_ {
+    static
+    std::size_t
+    getsize(T t) {
+      if(t <= 0xFF)
+        return 1;
+      else if(t <= 0xFFFF)
+        return 2;
+      else
+        return 4;
+    }
+  };
+
+  template<>
+  struct getsize_<std::uint8_t> {
+    static
+    std::size_t
+    getsize(std::uint8_t) {
       return 1;
-    else if(max <= 0xFFFF)
-      return 2;
-    else
-      return 4;
+    }
+  };
+
+  template<typename T>
+  std::size_t
+  getsize(T t) {
+    return getsize_<T>::getsize(t);
   }
 
   template<typename Cont>
-  char const *gettype(Cont const &ct) {
-    std::size_t const n = getsize(ct);
+  char const*
+  gettype(Cont const &ct) {
+    std::size_t const n = getsize(container_max(ct));
     switch(n) {
     case 1:
       return "std::uint8_t";
@@ -120,9 +140,20 @@ namespace libuni {
     }
   }
 
+  template<typename T, typename I>
+  T
+  max_range(T a, I b, I e) {
+    T max = a;
+    for(; b != e; ++b) {
+      max = std::max(a, *b);
+    }
+    return max;
+  }
+
   // inspired by makeunicodedata.py splitbins (see python source code)
   template<typename Int>
-  void splitbins(std::vector<Int> const &t, std::vector<std::size_t> &t1, std::vector<Int> &t2, std::size_t &shift) {
+  void
+  splitbins(std::vector<Int> const &t, std::vector<std::size_t> &t1, std::vector<Int> &t2, std::size_t &shift) {
     struct hash {
       std::size_t operator()(std::vector<Int> const &t) const {
         return boost::hash_range(t.begin(), t.end());
@@ -131,37 +162,33 @@ namespace libuni {
 
     std::size_t const maxshift = floor_log2(t.size());
     std::size_t bytes = ~0;
-    std::size_t best = 0;
 
     for(std::size_t shift2 = 0; shift2 < maxshift + 1; ++shift2) {
       std::size_t const size = 1 << shift2;
-      typedef std::unordered_map<std::vector<Int>, std::size_t, hash> bincache_t;
+      typedef std::unordered_set<std::vector<Int>, hash> bincache_t;
       bincache_t bincache;
-      t1.clear();
-      t2.clear();
+      std::size_t t1_size = 0;
+      std::size_t t1_max = 0;
+      std::size_t t2_size = 0;
+      Int t2_max = 0;
       for(std::size_t i = 0; i < t.size(); i += size) {
         std::vector<Int> v(t.begin() + i, t.begin() + i + size);
-        auto iter = bincache.find(v);
-        std::size_t index;
-        if(iter == bincache.end()) {
-          index = t2.size();
-          bincache[v] = index;
-          t2.insert(t2.end(), v.begin(), v.end());
+        std::pair<typename bincache_t::iterator, bool> const r = bincache.insert(v);
+        if(r.second) {
+          t2_size += v.end() - v.begin();
+          t2_max = std::max(t2_max, container_max(v));
         }
-        else {
-          index = iter->second;
-        }
-        t1.push_back(index >> shift2);
+        t1_max = std::max(t1_max, t2_size >> shift2);
+        ++t1_size;
       }
-      std::size_t b = t1.size() * getsize(t1) + t2.size()*getsize(t2);
+      std::size_t const b = t1_size * getsize(t1_max) + t2_size * getsize(t2_max);
       if(b < bytes) {
         bytes = b;
-        best = shift2;
+        shift = shift2;
       }
     }
 
-    shift = best;
-    std::size_t const size = 1 << best;
+    std::size_t const size = 1 << shift;
     std::unordered_map<std::vector<Int>, std::size_t, hash> bincache;
     t1.clear();
     t2.clear();
@@ -177,12 +204,13 @@ namespace libuni {
       else {
         index = iter->second;
       } 
-      t1.push_back(index >> best);
+      t1.push_back(index >> shift);
     }  
   }
 
   template<typename Cont>
-  void print_list(std::ostream &out, Cont const &ct) {
+  void
+  print_list(std::ostream &out, Cont const &ct) {
     std::stringstream linebuf;
     for(auto i = ct.begin(); i != ct.end(); ++i) {
       linebuf << (std::size_t)*i << ", ";
@@ -200,7 +228,6 @@ namespace libuni {
     No
   };
 }
-using namespace libuni;
 
 #ifndef UCD_PATH
 #define UCD_PATH "UCD/"
@@ -216,7 +243,8 @@ using namespace libuni;
 
 #ifndef TEST
 
-int main() {
+int
+main() {
   std::ifstream in(UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt");
   if(not in) {
     std::cerr << "Failed to open: `" UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt'\n";
@@ -267,7 +295,7 @@ int main() {
           return 1;
         }
         codepoint_t const end = string_to_codepoint(codepoint.begin() + dot, codepoint.end());
-        for(; i != end; ++i) {
+        for(; i <= end; ++i) {
           qc[i] |= value << shift;
         }
       }
