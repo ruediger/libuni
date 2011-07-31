@@ -1,3 +1,23 @@
+/** generate_two_stage_table.c++ --- Generates two stage tables from the UCD.
+ *
+ * Copyright (C) 2011 Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+ *
+ * This file is part of libuni.
+ *
+ ** Commentary:
+ * Loads the "Unicode Character Database" (UCD, see UAX#44) and generates two-stage tables in C++.
+ *
+ * This file MUST bootstrap and therefore SHOULD NOT rely on other libuni code (e.g., include headers from include/libuni).
+ *
+ * It takes the following compile-time parameters
+ * - UCD_PATH :: the path to the directory containing the UCD files. MUST end with a /! [default: "UCD/"]
+ * - UCD_VERSION :: suffix for UCD files. [default: ""]
+ * - OUTDIR :: path to create the C++ files in. MUST end with a /! [default: "src/generated/"]
+ *
+ * The latest version of the Unicode Character Database can be found at
+ * http://www.unicode.org/Public/UNIDATA/
+ * See http://www.unicode.org/reports/tr44/ and http://www.unicode.org/ucd/
+ */
 #include <iostream>
 #include <fstream>
 #include <istream>
