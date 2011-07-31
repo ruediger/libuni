@@ -22,19 +22,28 @@ namespace libuni {
     No
   };
 
+  extern
   std::uint8_t
   is_allowed(codepoint_t cp);
 
-  quick_check_t
-  is_allowed_nfd(codepoint_t cp);
+  namespace helper {
+    enum {
+      NFD  = 0x03u,
+      NFKD = 0x0Cu,
+      NFC  = 0x30u,
+      NFKC = 0xC0u
+    };
 
-  // Normalization Form D (NFD): Canonical Decomposition
-  template<typename String>
-  String toNFD(String const &in);
+    template<unsigned Select>
+    quick_check_t
+    is_allowed(codepoint_t cp) {
+      return static_cast<quick_check_t>(libuni::is_allowed(cp) & Select);
+    }
+  }
 
-  template<typename String, typename UTFTrait = utf_trait<String>>
+  template<typename String, typename UTFTrait, unsigned Select>
   quick_check_t
-  isNFD(String const &in) {
+  isNFX(String const &in) {
     short last_canonical_class = 0;
     quick_check_t result = Yes;
     typedef typename String::const_iterator iterator_t;
@@ -48,7 +57,7 @@ namespace libuni {
         return No;
       }
 #endif
-      quick_check_t const check = is_allowed_nfd(cp);
+      quick_check_t const check = helper::is_allowed<Select>(cp);
       if(check == No) {
         return No;
       }
@@ -60,9 +69,9 @@ namespace libuni {
     return result;
   }
 
-  template<typename String, typename UTFTrait = utf_trait<String>>
+  template<typename String, typename UTFTrait = utf_trait<String>, unsigned Select>
   bool
-  is_nfd(String const &in) {
+  is_nfX(String const &in) {
     short last_canonical_class = 0;
     typedef typename String::const_iterator iterator_t;
     iterator_t const end = in.end();
@@ -75,7 +84,7 @@ namespace libuni {
         return false;
       }
 #endif
-      quick_check_t const check = is_allowed_nfd(cp);
+      quick_check_t const check = helper::is_allowed<Select>(cp);
       if(check == No or check == Maybe) {
         return false;
       }
@@ -84,23 +93,69 @@ namespace libuni {
     return true;
   }
 
+  // Normalization Form D (NFD): Canonical Decomposition
+  template<typename String>
+  String toNFD(String const &in);
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  quick_check_t
+  isNFD(String const &in) {
+    return isNFX<String, UTFTrait, helper::NFD>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  bool
+  is_nfd(String const &in) {
+    return is_nfX<String, UTFTrait, helper::NFD>(in);
+  }
+
   // Normalization Form C (NFC): Canonical Decomposition, followed by Canonical Composition
   template<typename String>
   String toNFC(String const &in);
-  template<typename String>
-  bool isNFC(String const &in);
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  quick_check_t
+  isNFC(String const &in) {
+    return isNFX<String, UTFTrait, helper::NFC>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  bool
+  is_nfc(String const &in) {
+    return is_nfX<String, UTFTrait, helper::NFC>(in);
+  }
 
   // Normalization Form KD (NFKD): Compatibility Decomposition
   template<typename String>
   String toNFKD(String const &in);
-  template<typename String>
-  bool isNFKD(String const &in);
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  quick_check_t
+  isNFKD(String const &in) {
+    return isNFX<String, UTFTrait, helper::NFKD>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  bool
+  is_nfkd(String const &in) {
+    return is_nfX<String, UTFTrait, helper::NFKD>(in);
+  }
 
   // Normalization Form KC (NFKC): Compatibility Decomposition, followed by Canonical Composition
   template<typename String>
   String toNFKC(String const &in);
-  template<typename String>
-  bool isNFKC(String const &in);
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  quick_check_t
+  isNFKC(String const &in) {
+    return isNFX<String, UTFTrait, helper::NFKC>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  bool
+  is_nfkc(String const &in) {
+    return is_nfX<String, UTFTrait, helper::NFKC>(in);
+  }
 }
 
 #endif
