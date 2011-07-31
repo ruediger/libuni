@@ -6,19 +6,18 @@
  *
  ** Commentary:
  *
+ * See Ch.3.9
  */
 #ifndef LIBUNI_UTF8_HPP
 #define LIBUNI_UTF8_HPP
 
-#include "codepoint.hpp"
-#include <type_traits>
+#include "utf.hpp"
 
+#include <type_traits>
 #include <string>
 
 namespace libuni {
   typedef unsigned char char8_t; // consistency with C++0x' char16_t/char32_t
-
-  enum utf_status { utf_ok, incomplete_sequence, invalid_sequence };
 
   namespace utf8 {
 
@@ -227,9 +226,6 @@ namespace libuni {
   }
 
   } // namespace utf8
-
-  template<typename String>
-  struct utf_trait;
 
   template<>
   struct utf_trait<std::string> { // assume std::string is UTF-8
