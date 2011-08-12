@@ -259,10 +259,7 @@ namespace {
 #define OUTDIR "src/generated/"
 #endif
 
-//#define TEST
-
-#ifndef TEST
-
+#ifndef TEST // This is required by test/test_generate_two_stage_table.c++!
 int
 main() {
   std::ifstream in(UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt");
@@ -355,44 +352,4 @@ main() {
   out << "} // namespace libuni\n\n#endif\n";
 }
 
-#else
-
-int main() { // DBG
-  // string_to_codepoint
-  {
-    std::string a("AFFE");
-    codepoint_t t = string_to_codepoint(a.begin(), a.end());
-    assert(t == 0xAFFE);
-    a = "3a";
-    t = string_to_codepoint(a.begin(), a.end());
-    assert(t == 0x3A);
-  }
-
-  // create_trimmed_string
-  {
-    std::string a(" ab ");
-    std::string b(create_trimmed_string(a.begin(), a.end()));
-    assert(b == "ab");
-  }
-
-  // parse_line
-  {
-    std::stringstream ss;
-    ss << "a;b;c # hello\nd;e;f\n";
-    boost::optional<std::vector<std::string>> l = parse_line(ss);
-    assert(l);
-    assert(l->size() == 3);
-    assert((*l)[0] == "a");
-    assert((*l)[1] == "b");
-    assert((*l)[2] == "c");
-    boost::optional<std::vector<std::string>> k = parse_line(ss);
-    assert(k);
-    assert(k->size() == 3);
-    assert((*k)[0] == "d");
-    assert((*k)[1] == "e");
-    assert((*k)[2] == "f");
-  }
-
-  return 1;
-}
-#endif
+#endif //TEST

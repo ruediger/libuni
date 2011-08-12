@@ -2,6 +2,7 @@ if(BUILD_TESTS)
 
 enable_testing()
 
+include_directories(${libuni_SOURCE_DIR}/src)
 file(GLOB Tests "test_*.c++")
 
 foreach(Test_Source ${Tests})
