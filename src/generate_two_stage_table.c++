@@ -76,14 +76,16 @@ namespace {
     std::string::const_iterator const end = line.end();
     std::vector<std::string> properties;
     for(std::string::const_iterator from = i;; ++i) {
-      if(*i == ';') {
+      if(i == end) {
+        if(from != end) {
+          properties.push_back(create_trimmed_string(from, end));
+        }
+        break;
+      }
+      else if(*i == ';') {
         properties.push_back(create_trimmed_string(from, i));
         from = i;
         ++from;
-      }
-      else if(i == end and from != end) {
-        properties.push_back(create_trimmed_string(from, end));
-        break;
       }
       else if(*i == '#') { // comment
         std::string const s = create_trimmed_string(from, i);
@@ -128,6 +130,18 @@ namespace {
         return 2;
       else
         return 4;
+    }
+  };
+
+  template<>
+  struct getsize_<std::uint16_t> {
+    static
+    std::size_t
+    getsize(std::uint16_t t) {
+      if(t <= 0xFF)
+        return 1;
+      else
+        return 2;
     }
   };
 
@@ -252,12 +266,27 @@ namespace {
 #ifndef TEST // This is required by test/test_generate_two_stage_table.c++!
 int
 main() {
+  std::vector<std::uint16_t> qc(0xff0000, 0x0000);
+
+  std::ifstream inud(UCD_PATH "UnicodeData" UCD_VERSION ".txt");
+  if(not inud) {
+    std::cerr << "Failed to open: `" UCD_PATH "UnicodeData" UCD_VERSION ".txt'\n";
+    return 1;
+  }
+  for(boost::optional<std::vector<std::string>> line; inud; line = parse_line(inud)) {
+    if(not line or line->size() < 4) {
+      continue;
+    }
+    codepoint_t const cp = string_to_codepoint((*line)[0].cbegin(), (*line)[0].cend());
+    std::uint8_t const combining_class = string_to_codepoint((*line)[3].cbegin(), (*line)[3].cend());
+    qc[cp] |= std::uint16_t(combining_class) << 8;
+  }
+
   std::ifstream in(UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt");
   if(not in) {
     std::cerr << "Failed to open: `" UCD_PATH "DerivedNormalizationProps" UCD_VERSION ".txt'\n";
     return 1;
   }
-  std::vector<std::uint8_t> qc(0xff0000, 0x00);
   for(boost::optional<std::vector<std::string>> line; in; line = parse_line(in)) {
     if(not line) {
       continue;
@@ -314,7 +343,7 @@ main() {
   }
 
   std::vector<std::size_t> t1;
-  std::vector<std::uint8_t> t2;
+  std::vector<std::uint16_t> t2;
   std::size_t shift;
   splitbins(qc, t1, t2, shift);
 
@@ -335,7 +364,7 @@ main() {
   print_list(out, t1);
   out << "};\n\n"; 
 
-  out << "std::uint8_t quick_check[] = {\n";
+  out << "std::uint16_t quick_check[] = {\n";
   print_list(out, t2);
   out << "};\n\n";
 

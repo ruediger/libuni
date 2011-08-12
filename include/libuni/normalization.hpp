@@ -24,9 +24,13 @@ namespace libuni {
 
   extern
   std::uint8_t
-  is_allowed(codepoint_t cp);
+  get_canonical_class(codepoint_t cp);
 
   namespace helper {
+    extern
+    std::uint8_t
+    is_allowed(codepoint_t cp);
+
     enum {
       NFD  = 0x03u,
       NFKD = 0x0Cu,
@@ -37,26 +41,25 @@ namespace libuni {
     template<unsigned Select>
     quick_check_t
     is_allowed(codepoint_t cp) {
-      return static_cast<quick_check_t>(libuni::is_allowed(cp) & Select);
+      return static_cast<quick_check_t>(libuni::helper::is_allowed(cp) & Select);
     }
   }
 
   template<typename String, typename UTFTrait, unsigned Select>
   quick_check_t
   isNFX(String const &in) {
-    short last_canonical_class = 0;
+    std::uint8_t last_canonical_class = 0;
     quick_check_t result = Yes;
     typedef typename String::const_iterator iterator_t;
     iterator_t const end = in.end();
     iterator_t i = in.begin();
     codepoint_t cp;
     while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
-#if 0 // TODO
-      short const canonical_class = get_canonical_class(cp);
+      std::uint8_t const canonical_class = get_canonical_class(cp);
       if(last_canonical_class > canonical_class and canonical_class != 0) {
         return No;
       }
-#endif
+
       quick_check_t const check = helper::is_allowed<Select>(cp);
       if(check == No) {
         return No;
@@ -64,7 +67,7 @@ namespace libuni {
       else if(check == Maybe) {
         result = Maybe;
       }
-      //last_canonical_class = canonical_class;
+      last_canonical_class = canonical_class;
     }
     return result;
   }
@@ -72,23 +75,22 @@ namespace libuni {
   template<typename String, typename UTFTrait = utf_trait<String>, unsigned Select>
   bool
   is_nfX(String const &in) {
-    short last_canonical_class = 0;
+    std::uint8_t last_canonical_class = 0;
     typedef typename String::const_iterator iterator_t;
     iterator_t const end = in.end();
     iterator_t i = in.begin();
     codepoint_t cp;
     while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
-#if 0 // TODO
-      short const canonical_class = get_canonical_class(cp);
+      std::uint8_t const canonical_class = get_canonical_class(cp);
       if(last_canonical_class > canonical_class and canonical_class != 0) {
         return false;
       }
-#endif
+
       quick_check_t const check = helper::is_allowed<Select>(cp);
       if(check == No or check == Maybe) {
         return false;
       }
-      //last_canonical_class = canonical_class;
+      last_canonical_class = canonical_class;
     }
     return true;
   }
