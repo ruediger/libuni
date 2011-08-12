@@ -22,30 +22,38 @@ namespace libuni {
     No
   };
 
-  extern
-  std::uint8_t
-  get_canonical_class(codepoint_t cp);
-
   namespace helper {
     extern
-    std::uint8_t
-    is_allowed(codepoint_t cp);
+    std::uint16_t
+    get_quick_check(codepoint_t cp);
 
-    enum {
+    inline
+    std::uint8_t
+    is_allowed(std::uint16_t qc) {
+      return qc;
+    }
+
+    inline
+    std::uint8_t
+    get_canonical_class(std::uint16_t qc) {
+      return qc >> 8;
+    }
+
+    enum normalization_form{
       NFD  = 0x03u,
       NFKD = 0x0Cu,
       NFC  = 0x30u,
       NFKC = 0xC0u
     };
 
-    template<unsigned Select>
+    template<normalization_form NF>
     quick_check_t
-    is_allowed(codepoint_t cp) {
-      return static_cast<quick_check_t>(libuni::helper::is_allowed(cp) & Select);
+    is_allowed(std::uint16_t qc) {
+      return static_cast<quick_check_t>(libuni::helper::is_allowed(qc) & NF);
     }
   }
 
-  template<typename String, typename UTFTrait, unsigned Select>
+  template<typename String, typename UTFTrait, helper::normalization_form Select>
   quick_check_t
   isNFX(String const &in) {
     std::uint8_t last_canonical_class = 0;
@@ -55,12 +63,13 @@ namespace libuni {
     iterator_t i = in.begin();
     codepoint_t cp;
     while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
-      std::uint8_t const canonical_class = get_canonical_class(cp);
+      std::uint16_t const qc = helper::get_quick_check(cp);
+      std::uint8_t const canonical_class = helper::get_canonical_class(qc);
       if(last_canonical_class > canonical_class and canonical_class != 0) {
         return No;
       }
 
-      quick_check_t const check = helper::is_allowed<Select>(cp);
+      quick_check_t const check = helper::is_allowed<Select>(qc);
       if(check == No) {
         return No;
       }
@@ -72,7 +81,7 @@ namespace libuni {
     return result;
   }
 
-  template<typename String, typename UTFTrait = utf_trait<String>, unsigned Select>
+  template<typename String, typename UTFTrait = utf_trait<String>, helper::normalization_form Select>
   bool
   is_nfX(String const &in) {
     std::uint8_t last_canonical_class = 0;
@@ -81,12 +90,13 @@ namespace libuni {
     iterator_t i = in.begin();
     codepoint_t cp;
     while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
-      std::uint8_t const canonical_class = get_canonical_class(cp);
+      std::uint16_t const qc = helper::get_quick_check(cp);
+      std::uint8_t const canonical_class = helper::get_canonical_class(qc);
       if(last_canonical_class > canonical_class and canonical_class != 0) {
         return false;
       }
 
-      quick_check_t const check = helper::is_allowed<Select>(cp);
+      quick_check_t const check = helper::is_allowed<Select>(qc);
       if(check == No or check == Maybe) {
         return false;
       }
