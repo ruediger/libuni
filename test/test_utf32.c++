@@ -12,6 +12,7 @@ BOOST_AUTO_TEST_CASE(test_utf32_next_codepoint) {
     BOOST_CHECK_EQUAL(cp, str[n++]);
     BOOST_CHECK_LE(n, sizeof(str)/sizeof(*str));
   }
+  BOOST_CHECK_EQUAL(n, sizeof(str)/sizeof(*str));
 }
 
 BOOST_AUTO_TEST_CASE(test_utf32_is_wellformed) {

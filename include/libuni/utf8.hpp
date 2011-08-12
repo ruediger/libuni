@@ -90,8 +90,9 @@ namespace libuni {
       else {
         return incomplete_sequence;
       }
-    case 0:
       break;
+    case 0:
+      return end_of_string;
     }
     ++i;
     return utf_ok;

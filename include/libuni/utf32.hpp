@@ -19,7 +19,7 @@ namespace libuni {
     utf_status
     next_codepoint(I &i, I end, codepoint_t &cp) {
       if(i == end) {
-        return incomplete_sequence;
+        return end_of_string;
       }
       else {
         cp = *i;

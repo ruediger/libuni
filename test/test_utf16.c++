@@ -9,7 +9,7 @@ BOOST_AUTO_TEST_CASE(test_utf16_next_codepoint) {
   char16_t const *const end = str + sizeof(str)/sizeof(*str);
   libuni::codepoint_t cp;
   std::size_t n = 0;
-  while(i != end and libuni::utf16::next_codepoint(i, end, cp) == libuni::utf_ok) {
+  while(libuni::utf16::next_codepoint(i, end, cp) == libuni::utf_ok) {
     BOOST_CHECK_EQUAL(cp, cps[n++]);
     BOOST_CHECK_LE(n, sizeof(cps)/sizeof(*cps));
   }

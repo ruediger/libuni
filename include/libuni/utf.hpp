@@ -14,7 +14,7 @@
 #include "codepoint.hpp"
 
 namespace libuni {
-  enum utf_status { utf_ok, incomplete_sequence, invalid_sequence };
+  enum utf_status { utf_ok, incomplete_sequence, invalid_sequence, end_of_string };
 
   template<typename String>
   struct utf_trait;
