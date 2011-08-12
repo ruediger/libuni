@@ -278,7 +278,7 @@ main() {
       continue;
     }
     codepoint_t const cp = string_to_codepoint((*line)[0].cbegin(), (*line)[0].cend());
-    std::uint8_t const combining_class = string_to_codepoint((*line)[3].cbegin(), (*line)[3].cend());
+    std::uint8_t const combining_class = std::stoul((*line)[3]);
     qc[cp] |= std::uint16_t(combining_class) << 8;
   }
 

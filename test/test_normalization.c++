@@ -16,6 +16,13 @@ BOOST_AUTO_TEST_CASE(test_is_allowed_nfd) {
   BOOST_CHECK_EQUAL(libuni::helper::is_allowed<libuni::helper::NFD>(qc), libuni::No);
 }
 
+BOOST_AUTO_TEST_CASE(test_get_canonical_class) {
+  std::uint16_t qc = libuni::helper::get_quick_check(0x05A1);
+  BOOST_CHECK_EQUAL(libuni::helper::get_canonical_class(qc), 230);
+  qc = libuni::helper::get_quick_check(0x05E9);
+  BOOST_CHECK_EQUAL(libuni::helper::get_canonical_class(qc), 0);
+}
+
 BOOST_AUTO_TEST_CASE(test_isNFD) {
   std::string str = "Ångstrom";
   BOOST_CHECK_EQUAL(libuni::isNFD(str), libuni::No);
