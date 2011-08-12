@@ -160,16 +160,6 @@ namespace {
     }
   }
 
-  template<typename T, typename I>
-  T
-  max_range(T a, I b, I e) {
-    T max = a;
-    for(; b != e; ++b) {
-      max = std::max(a, *b);
-    }
-    return max;
-  }
-
   // inspired by makeunicodedata.py splitbins (see python source code)
   template<typename Int>
   void
