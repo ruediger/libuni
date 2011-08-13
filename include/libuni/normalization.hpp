@@ -13,7 +13,10 @@
 #define LIBUNI_NORMALIZATION_HPP
 
 #include "codepoint.hpp"
+#include "codepoint_string.hpp"
 #include "utf8.hpp"
+
+#include <cassert> // TODO
 
 namespace libuni {
   enum quick_check_t {
@@ -51,6 +54,10 @@ namespace libuni {
     is_allowed(std::uint16_t qc) {
       return static_cast<quick_check_t>(libuni::helper::is_allowed(qc) & NF);
     }
+
+    extern
+    bool
+    get_decomp_mapping(codepoint_t cp, std::size_t &prefix, codepoint_t const *&begin, codepoint_t const *&end);
   }
 
   template<typename String, typename UTFTrait, helper::normalization_form Select>
@@ -106,9 +113,6 @@ namespace libuni {
   }
 
   // Normalization Form D (NFD): Canonical Decomposition
-  template<typename String>
-  String toNFD(String const &in);
-
   template<typename String, typename UTFTrait = utf_trait<String>>
   quick_check_t
   isNFD(String const &in) {
@@ -119,6 +123,69 @@ namespace libuni {
   bool
   is_nfd(String const &in) {
     return is_nfX<String, UTFTrait, helper::NFD>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  String toNFD(String const &in) {
+    if(is_nfd(in)) {
+      return in;
+    }
+
+    codepoint_string_t tmp; // store codepoints before reorder
+    tmp.reserve(in.size() + 10);
+    codepoint_t stack[20];
+    std::size_t stacksize = 0;
+    typedef typename String::const_iterator iterator_t;
+    iterator_t const end = in.end();
+    iterator_t i = in.begin();
+    codepoint_t cp;
+    while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
+      stack[stacksize++] = cp;
+      while(stacksize) {
+        codepoint_t const code = stack[--stacksize];
+
+        // TODO Hangul
+
+        std::size_t prefix;
+        codepoint_t const *begin = 0x0, *end = 0x0;
+        if(helper::get_decomp_mapping(code, prefix, begin, end)) {
+          assert(end - begin + stacksize <  sizeof(stack)/sizeof(stack[0]));
+          while(end != begin) {
+            stack[stacksize++] = *--end;
+          }
+        }
+        else {
+          tmp.push_back(code);
+        }
+      }
+    }
+
+    // Canonical Ordering Algorithm  (D109)
+    std::uint8_t prev = helper::get_canonical_class(helper::get_quick_check(tmp[0]));
+    codepoint_string_t::iterator sortbeg = tmp.begin();
+    for(auto i = tmp.begin(); i != tmp.end(); ++i) {
+      std::uint8_t cur = helper::get_canonical_class(helper::get_quick_check(*i));
+
+      if(prev == 0 or cur == 0 or prev <= cur) {
+        prev = cur;
+        if(prev == 0 and cur != 0) {
+          sortbeg = i - 1;
+        }
+      }
+      else {
+        codepoint_string_t::iterator j = i;
+        for(; j != sortbeg; --j) {
+          std::swap(*(j - 1), *j);
+          prev = helper::get_canonical_class(helper::get_quick_check(*j));
+          if(prev <= cur) {
+            break;
+          }
+        }
+        prev = helper::get_canonical_class(helper::get_quick_check(*i));
+      }
+    }
+
+    return UTFTrait::from_codepoints(tmp);
   }
 
   // Normalization Form C (NFC): Canonical Decomposition, followed by Canonical Composition

@@ -83,7 +83,7 @@ namespace {
   /// Handle decomp_mapping (see UAX#44 5.7.3): [<prefix>] codepoint codepoint ...
   bool
   handle_decomp_mapping(codepoint_t cp, std::string const &str,
-                       std::vector<std::size_t> &decomp_index, std::vector<codepoint_t> &decomp_map, std::vector<std::string> &decomp_prefix)
+                        std::vector<std::size_t> &decomp_index, std::vector<codepoint_t> &decomp_map, std::vector<std::string> &decomp_prefix)
   {
     std::vector<codepoint_t> ret(1, 0); // first codepoint is length + prefix
     std::string::const_iterator const end = str.cend();
@@ -353,9 +353,9 @@ int
 main() {
   std::vector<std::uint16_t> qc(0xff0000, 0x0000);
 
-  std::vector<codepoint_t> decomp_map;
+  std::vector<codepoint_t> decomp_map(1, 0); // decomp_map[0] => 0
   std::vector<std::size_t> decomp_index(0xff0000, 0x00);
-  std::vector<std::string> decomp_prefix;
+  std::vector<std::string> decomp_prefix(1, "x_none"); // decomp_prefix[0] => no prefix
 
   std::ifstream inud(UCD_PATH "UnicodeData" UCD_VERSION ".txt");
   if(not inud) {
