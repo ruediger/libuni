@@ -2,6 +2,9 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <libuni/utf8.hpp>
+#include <libuni/utf16.hpp>
+#include <libuni/utf32.hpp>
 #include <libuni/normalization.hpp>
 #include <cstring>
 
@@ -56,7 +59,80 @@ BOOST_AUTO_TEST_CASE(test_toNFD) {
   std::string output = libuni::toNFD(input);
   // CC88 is UTF-8 for 308 (COMBINING DIAERESIS)
   BOOST_CHECK_EQUAL(output, "UU\xCC\x88O");
-  for(std::size_t i = 0; i < output.size(); ++i) {
-    std::cerr << std::hex << (unsigned)output[i] << ' ' << (unsigned)"UU\xCC\x88O"[i] << std::endl;
+}
+
+#define TEST
+#include "generate_two_stage_table.c++" // TODO move string_to_codepoint/parse_line to separate file
+
+namespace {
+  libuni::codepoint_string_t
+  to_codepoint_string(std::string const &in) {
+    libuni::codepoint_string_t str;
+    str.reserve(in.size()/4);
+    std::string::const_iterator beg = in.cbegin();
+    std::string::const_iterator const end = in.cend();
+    for(auto i = in.cbegin(); i != end; ++i) {
+      if(*i == ' ') {
+        if(beg != i) {
+          str.push_back(string_to_codepoint(beg, i));
+        }
+        if(i+1 != end) {
+          beg = i+1;
+        }
+      }
+    }
+    if(beg != end) {
+      str.push_back(string_to_codepoint(beg, end));
+    }
+    return str;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(test_to_codepoint_string) {
+  libuni::codepoint_string_t s = to_codepoint_string("FF 800 3C0");
+  BOOST_REQUIRE_EQUAL(s.size(), 3);
+  BOOST_CHECK_EQUAL(s[0], 0xFF);
+  BOOST_CHECK_EQUAL(s[1], 0x800);
+  BOOST_CHECK_EQUAL(s[2], 0x3C0);
+}
+
+BOOST_AUTO_TEST_CASE(test_toNFD_UCD) {
+  std::ifstream in(UCD_PATH "NormalizationTest" UCD_VERSION ".txt");
+  if(in) {
+    for(boost::optional<std::vector<std::string>> line; in; line = parse_line(in)) {
+      if(not line) {
+        continue;
+      }
+      if(line->size() >= 3) {
+        libuni::codepoint_string_t const c1 = to_codepoint_string((*line)[0]);
+        libuni::codepoint_string_t const c2 = to_codepoint_string((*line)[1]);
+        libuni::codepoint_string_t const c3 = to_codepoint_string((*line)[2]);
+
+        BOOST_CHECK(c3 == libuni::toNFD(c1));
+        BOOST_CHECK(c3 == libuni::toNFD(c2));
+        BOOST_CHECK(c3 == libuni::toNFD(c3));
+
+        std::string const c1_u8 = libuni::utf8::from_codepoints(c1);
+        std::string const c2_u8 = libuni::utf8::from_codepoints(c2);
+        std::string const c3_u8 = libuni::utf8::from_codepoints(c3);
+        BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c1_u8));
+        BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c2_u8));
+        BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c3_u8));
+
+        // TODO other NF* and UTF16
+      }
+      if(line->size() >= 5) {
+        libuni::codepoint_string_t const c4 = to_codepoint_string((*line)[3]);
+        libuni::codepoint_string_t const c5 = to_codepoint_string((*line)[4]);
+
+        BOOST_CHECK(c5 == libuni::toNFD(c4));
+        BOOST_CHECK(c5 == libuni::toNFD(c5));
+
+        std::string const c4_u8 = libuni::utf8::from_codepoints(c4);
+        std::string const c5_u8 = libuni::utf8::from_codepoints(c5);
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFD(c4_u8));
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFD(c5_u8));
+      }
+    }
   }
 }
