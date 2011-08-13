@@ -52,6 +52,13 @@ BOOST_AUTO_TEST_CASE(test_get_decomp_mapping) {
   BOOST_REQUIRE_EQUAL(end-begin, 2);
   BOOST_CHECK_EQUAL(begin[0], 0x6C);
   BOOST_CHECK_EQUAL(begin[1], 0xB7);
+
+  // ΅
+  BOOST_REQUIRE(libuni::helper::get_decomp_mapping(0x385, prefix, begin, end));
+  BOOST_CHECK_EQUAL(prefix, 0);
+  BOOST_REQUIRE_EQUAL(end-begin, 2);
+  BOOST_CHECK_EQUAL(begin[0], 0xA8);
+  BOOST_CHECK_EQUAL(begin[1], 0x301);
 }
 
 BOOST_AUTO_TEST_CASE(test_toNFD) {

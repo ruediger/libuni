@@ -171,7 +171,7 @@ namespace libuni {
 
         std::size_t prefix;
         codepoint_t const *begin = 0x0, *end = 0x0;
-        if(helper::get_decomp_mapping(code, prefix, begin, end)) {
+        if(helper::get_decomp_mapping(code, prefix, begin, end) and prefix == 0) {
           assert(end - begin + stacksize <  sizeof(stack)/sizeof(stack[0]));
           while(end != begin) {
             stack[stacksize++] = *--end;
