@@ -183,22 +183,27 @@ namespace libuni {
       }
     }
 
+
     // Canonical Ordering Algorithm  (D109)
     std::uint8_t prev = helper::get_canonical_class(helper::get_quick_check(tmp[0]));
-    codepoint_string_t::iterator sortbeg = tmp.begin();
+    codepoint_string_t::iterator sortbeg = tmp.begin() - 1;
     for(auto i = tmp.begin(); i != tmp.end(); ++i) {
       std::uint8_t cur = helper::get_canonical_class(helper::get_quick_check(*i));
 
       if(prev == 0 or cur == 0 or prev <= cur) {
-        prev = cur;
         if(prev == 0 and cur != 0) {
           sortbeg = i - 1;
         }
+        prev = cur;
       }
       else {
-        codepoint_string_t::iterator j = i;
-        for(; j != sortbeg; --j) {
-          std::swap(*(j - 1), *j);
+        codepoint_string_t::iterator j = i - 1;
+        for(;;) {
+          std::swap(*j, *(j + 1));
+          --j;
+          if(j == sortbeg) {
+            break;
+          }
           prev = helper::get_canonical_class(helper::get_quick_check(*j));
           if(prev <= cur) {
             break;
