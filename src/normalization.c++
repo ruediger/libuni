@@ -30,4 +30,3 @@ namespace libuni { namespace helper {
     }
   }
 }}
-

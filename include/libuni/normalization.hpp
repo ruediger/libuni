@@ -125,6 +125,18 @@ namespace libuni {
     return is_nfX<String, UTFTrait, helper::NFD>(in);
   }
 
+  namespace hangul {
+    codepoint_t const SBase = 0xAC00;
+    codepoint_t const LBase = 0x1100;
+    codepoint_t const VBase = 0x1161;
+    codepoint_t const TBase = 0x11A7;
+    codepoint_t const LCount = 19;
+    codepoint_t const VCount = 21;
+    codepoint_t const TCount = 28;
+    codepoint_t const NCount = VCount * TCount;
+    codepoint_t const SCount = LCount * NCount;
+  }
+
   template<typename String, typename UTFTrait = utf_trait<String>>
   String toNFD(String const &in) {
     if(is_nfd(in)) {
@@ -144,7 +156,18 @@ namespace libuni {
       while(stacksize) {
         codepoint_t const code = stack[--stacksize];
 
-        // TODO Hangul
+        if(hangul::SBase <= code and code < hangul::SBase + hangul::SCount) { // Hangul Syllable Decomposition
+          codepoint_t const SIndex = code - hangul::SBase;
+          codepoint_t const L = hangul::LBase + SIndex / hangul::NCount;
+          codepoint_t const V = hangul::VBase + (SIndex % hangul::NCount) / hangul::TCount;
+          codepoint_t const T = hangul::TBase + SIndex % hangul::TCount;
+          tmp.push_back(L);
+          tmp.push_back(V);
+          if(T != hangul::TBase) {
+            tmp.push_back(T);
+          }
+          continue;
+        }
 
         std::size_t prefix;
         codepoint_t const *begin = 0x0, *end = 0x0;
