@@ -68,3 +68,57 @@ BOOST_AUTO_TEST_CASE(test_gettype) {
   v.push_back(0xFFFFFF);
   BOOST_CHECK_EQUAL(gettype(v), "std::uint32_t");
 }
+
+BOOST_AUTO_TEST_CASE(test_insert_unique) {
+  std::vector<std::string> v;
+  std::size_t i = insert_unique(v, "hello");
+  BOOST_CHECK_EQUAL(i, 0);
+  BOOST_CHECK_EQUAL(v.size(), 1);
+  BOOST_CHECK_EQUAL(v[0], "hello");
+  i = insert_unique(v, "world");
+  BOOST_CHECK_EQUAL(i, 1);
+  BOOST_CHECK_EQUAL(v.size(), 2);
+  BOOST_CHECK_EQUAL(v[0], "hello");
+  BOOST_CHECK_EQUAL(v[1], "world");
+  i = insert_unique(v, "hello");
+  BOOST_CHECK_EQUAL(i, 0);
+  BOOST_CHECK_EQUAL(v.size(), 2);
+  BOOST_CHECK_EQUAL(v[0], "hello");
+  BOOST_CHECK_EQUAL(v[1], "world");
+}
+
+BOOST_AUTO_TEST_CASE(test_handle_decomp_mapping) {
+  std::vector<std::size_t> index(11, 0);
+  std::vector<codepoint_t> map;
+  std::vector<std::string> prefix;
+
+  codepoint_t cp = 1;
+  std::string str = "004C 004A";
+  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_CHECK_EQUAL(index[cp], 0);
+  BOOST_CHECK_EQUAL(map.size(), 3);
+  BOOST_CHECK_EQUAL(map[0] >> 8, 2);
+  BOOST_CHECK_EQUAL(map[1], 0x4C);
+  BOOST_CHECK_EQUAL(map[2], 0x4A);
+  BOOST_CHECK_EQUAL(prefix.size(), 0);
+
+  cp = 2;
+  str = "<compat> 0064 017E";
+  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_CHECK_EQUAL(index[cp], 3);
+  BOOST_CHECK_EQUAL(map.size(), 6);
+  BOOST_CHECK_EQUAL(map[3], 2 << 8);
+  BOOST_CHECK_EQUAL(map[4], 0x64);
+  BOOST_CHECK_EQUAL(map[5], 0x17E);
+  BOOST_CHECK_EQUAL(prefix.size(), 1);
+  BOOST_CHECK_EQUAL(prefix[0], "compat");
+
+  cp = 3;
+  str = "004C 004A";
+  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_CHECK_EQUAL(index[cp], 0);
+  BOOST_CHECK_EQUAL(map.size(), 6);
+  BOOST_CHECK_EQUAL(map[0] >> 8, 2);
+  BOOST_CHECK_EQUAL(map[1], 0x4C);
+  BOOST_CHECK_EQUAL(map[2], 0x4A);
+}
