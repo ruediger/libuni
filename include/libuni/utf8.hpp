@@ -226,6 +226,27 @@ namespace libuni {
     }
   }
 
+
+  template<typename I>
+  bool
+  starts_with_bom(I begin, I end) {
+    return
+      (begin != end and *begin == 0xEF) and
+      (++begin != end and *begin == 0xBB) and
+      (++begin != end and *begin == 0xBF);
+  }
+
+  template<typename I>
+  I
+  skip_bom(I begin, I end) {
+    I const tmp = begin;
+    if((begin != end and *begin == 0xEF) and
+       (++begin != end and *begin == 0xBB) and
+       (++begin != end and *begin == 0xBF))
+      return ++begin;
+    else
+      return tmp;
+  }
   } // namespace utf8
 
   template<>
