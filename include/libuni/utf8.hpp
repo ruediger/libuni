@@ -12,6 +12,7 @@
 #define LIBUNI_UTF8_HPP
 
 #include "utf.hpp"
+#include "codepoint_string.hpp"
 
 #include <type_traits>
 #include <string>
@@ -96,6 +97,40 @@ namespace libuni {
     }
     ++i;
     return utf_ok;
+  }
+
+  template<typename Cont>
+  void
+  codepoint_to_utf8(codepoint_t cp, Cont &str) { // this can generate illformed UTF8 sequences when surrogate pairs are converted!
+    if(cp <= 0x7F) {
+      str.push_back(cp);
+    }
+    else if(0x80 <= cp and cp <= 0x7FF) {          // 00000yyy yyxxxxxx
+      str.push_back( (cp >> 6)           | 0xC0 ); // 110yyyyy
+      str.push_back( (cp & 0x3F)         | 0x80 ); // 10xxxxxx
+    }
+    else if(0x800 <= cp and cp <= 0xFFFF) {        // zzzzyyyy yyxxxxxx
+      str.push_back( (cp >> 12)          | 0xE0 ); // 1110zzzz
+      str.push_back( ((cp >> 6) & 0x3F)  | 0x80 ); // 10yyyyyy
+      str.push_back( (cp & 0x3F)         | 0x80 ); // 10xxxxxx
+    }
+    else if(0x10000 <= cp and cp <= 0x10FFFF) {    // 000uuuuuzzzzyyyy yyxxxxxx
+      str.push_back( (cp >> 18)          | 0xF0 ); // 11110uuu
+      str.push_back( ((cp >> 12) & 0x3F) | 0x80 ); // 10uuzzzz
+      str.push_back( ((cp >> 6)  & 0x3F) | 0x80 ); // 10yyyyyy
+      str.push_back( (cp & 0x3F)         | 0x80 ); // 10xxxxxx
+    }
+  }
+
+  std::string
+  from_codepoints(codepoint_string_t const &str) {
+    std::string ret;
+    ret.reserve(str.size()); // TODO
+    codepoint_string_t::const_iterator const end = str.cend();
+    for(auto i = str.cbegin(); i != end; ++i) {
+      codepoint_to_utf8(*i, ret);
+    }
+    return ret;
   }
 
   namespace helper {
@@ -256,6 +291,12 @@ namespace libuni {
     utf_status
     next_codepoint(I &i, I end, codepoint_t &cp) {
       return utf8::next_codepoint(i, end, cp);
+    }
+
+    static inline
+    std::string
+    from_codepoints(codepoint_string_t const &str) {
+      return utf8::from_codepoints(str);
     }
   };
 }

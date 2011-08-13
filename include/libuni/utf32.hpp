@@ -48,6 +48,12 @@ namespace libuni {
     next_codepoint(I &i, I end, codepoint_t &cp) {
       return utf32::next_codepoint(i, end, cp);
     }
+
+    static inline
+    std::u32string const&
+    from_codepoints(std::u32string const &str) {
+      return str;
+    }
   };
 }
 
