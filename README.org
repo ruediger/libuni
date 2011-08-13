@@ -1,0 +1,57 @@
+# -*- mode:org; mode:visual-line; coding:utf-8; -*-
+#+TITLE: libuni
+#+AUTHOR: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
+
+=libuni= is my attempt to implement parts of the Unicode Standard. It is written in C++ (with the use of new C++0x features).
+
+Currently support for handling UTF-8, UTF-16 (missing LE/BE, encoding), UTF-32 (missing LE/BE) and normalization is implemented.
+
+* Building
+** Requirements
+- [[http://www.cmake.org][CMake]]
+- C++-Compiler with C++0x support. =libuni= is developed on Ubuntu 11.04 with GCC 4.5.
+- [[http://boost.org][Boost]]: For usage of =libuni= only the boost headers are required. The unit tests require Boost.Test.
+- [[UCD]] (see next section)
+
+** UCD
+=libuni= generated the Unicode Database tables during compile time. It requires the "[[http://www.unicode.org/ucd/][Unicode Character Database]]" (UCD, see UAX#44) files which can be found at http://www.unicode.org/Public/UNIDATA/. Please read the [[http://www.unicode.org/copyright.html][Terms of Use]] before installing and using them. To make the UCD available to =libuni=, download the file 
+http://www.unicode.org/Public/UNIDATA/UCD.zip and extract it into a directory called =UCD= in the =libuni= source directory. Alternatively you can set the CMake variables =UCD_PATH= and =UCD_VERSION= to point to your UCD installation.
+
+#+BEGIN_EXAMPLE
+  cd libuni # move to libuni source directory
+  mkdir UCD
+  cd UCD
+  wget http://www.unicode.org/Public/UNIDATA/UCD.zip
+  unzip UCD.zip
+  cd ..
+#+END_EXAMPLE
+
+** Compilation
+=libuni= uses CMake but comes with a handy autotools like wrapper and can therefore be build similar to other Unix/Linux software
+
+#+BEGIN_EXAMPLE
+  ./configure
+  make
+  sudo make install
+#+END_EXAMPLE
+
+With =make test= the unit tests are build and run (requires Boost.Test).
+
+* Usage
+=libuni= is not complete at the moment and heavily under development!
+
+#+BEGIN_SRC c++
+
+#include <iostream>
+#include <libuni/utf8.hpp>
+#include <libuni/normalization.hpp>
+
+int main() {
+  std::string s = "libüni";
+  std::cout << std::boolalpha << libuni::is_nfd(s) << std::endl;
+  std::cout << toNFD(s) << std::endl;
+}
+
+#+END_SRC
+
+
