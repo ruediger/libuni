@@ -226,22 +226,6 @@ namespace libuni {
     }
   }
 
-  // Normalization Form C (NFC): Canonical Decomposition, followed by Canonical Composition
-  template<typename String>
-  String toNFC(String const &in);
-
-  template<typename String, typename UTFTrait = utf_trait<String>>
-  quick_check_t
-  isNFC(String const &in) {
-    return isNFX<String, UTFTrait, helper::NFC>(in);
-  }
-
-  template<typename String, typename UTFTrait = utf_trait<String>>
-  bool
-  is_nfc(String const &in) {
-    return is_nfX<String, UTFTrait, helper::NFC>(in);
-  }
-
   // Normalization Form KD (NFKD): Compatibility Decomposition
   template<typename String, typename UTFTrait = utf_trait<String>>
   quick_check_t
@@ -265,10 +249,40 @@ namespace libuni {
     }
   }
 
-  // Normalization Form KC (NFKC): Compatibility Decomposition, followed by Canonical Composition
-  template<typename String>
-  String toNFKC(String const &in);
+  // Normalization Form C (NFC): Canonical Decomposition, followed by Canonical Composition
+  namespace helper {
+    inline
+    codepoint_string_t
+    compose(codepoint_string_t const &in) {
+      // TODO
+      return in;
+    }
+  }
 
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  quick_check_t
+  isNFC(String const &in) {
+    return isNFX<String, UTFTrait, helper::NFC>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  bool
+  is_nfc(String const &in) {
+    return is_nfX<String, UTFTrait, helper::NFC>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  String toNFC(String const &in) {
+    if(is_nfc(in)) {
+      return in;
+    }
+    else {
+      codepoint_string_t tmp = helper::decompose<String, UTFTrait, false>(in);
+      return UTFTrait::from_codepoints(helper::compose(tmp));
+    }
+  }
+
+  // Normalization Form KC (NFKC): Compatibility Decomposition, followed by Canonical Composition
   template<typename String, typename UTFTrait = utf_trait<String>>
   quick_check_t
   isNFKC(String const &in) {
@@ -279,6 +293,17 @@ namespace libuni {
   bool
   is_nfkc(String const &in) {
     return is_nfX<String, UTFTrait, helper::NFKC>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  String toNFKC(String const &in) {
+    if(is_nfc(in)) {
+      return in;
+    }
+    else {
+      codepoint_string_t tmp = helper::decompose<String, UTFTrait, true>(in);
+      return UTFTrait::from_codepoints(helper::compose(tmp));
+    }
   }
 }
 
