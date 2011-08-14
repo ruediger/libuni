@@ -21,22 +21,34 @@ namespace libuni {
   extern codepoint_t titlecase_mapping(codepoint_t cp);
   extern codepoint_t code_folding(codepoint_t cp);
 
-  template<typename String, typename UTFTraits = utf_trait<String>>
-  String
-  toUppercase(String const &in) {
-    typedef typename String::const_iterator iterator_t;
-    iterator_t const end = in.end();
-    iterator_t i = in.begin();
-    codepoint_t cp;
-    String ret;
-    while(UTFTraits::next_codepoint(i, end, cp) == utf_ok) {
-      UTFTraits::append(ret, uppercase_mapping(cp));
+  namespace helper {
+    template<typename String, typename UTFTraits = utf_trait<String>, typename CaseMapping>
+    inline
+    String
+    toXcase(String const &in, CaseMapping map) {
+      typedef typename String::const_iterator iterator_t;
+      iterator_t const end = in.end();
+      iterator_t i = in.begin();
+      codepoint_t cp;
+      String ret;
+      while(UTFTraits::next_codepoint(i, end, cp) == utf_ok) {
+        UTFTraits::append(ret, map(cp));
+      }
+      return ret;
     }
-    return ret;
   }
 
   template<typename String, typename UTFTraits = utf_trait<String>>
-  String toLowercase(String const &in);
+  String
+  toUppercase(String const &in) {
+    return helper::toXcase(in, uppercase_mapping);
+  }
+
+  template<typename String, typename UTFTraits = utf_trait<String>>
+  String toLowercase(String const &in) {
+    return helper::toXcase(in, lowercase_mapping);
+  }
+
   template<typename String, typename UTFTraits = utf_trait<String>>
   String toTitlecase(String const &in);
   template<typename String, typename UTFTraits = utf_trait<String>>

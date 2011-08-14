@@ -342,6 +342,24 @@ namespace {
     Maybe,
     No
   };
+
+  void
+  print_case_mapping(std::ostream &out, std::vector<codepoint_t> const &case_map, char const *name) {
+    std::size_t shift;
+    std::vector<std::size_t> t1;
+    std::vector<codepoint_t> casedata;
+    splitbins(case_map, t1, casedata, shift);
+
+    out << "std::size_t const " << name << "_shift = " << shift << ";\n\n";
+
+    out << gettype(t1) << " const " << name << "_index[] = {\n";
+    print_list(out, t1);
+    out << "};\n\n";
+
+    out << "libuni::codepoint_t const " << name << "[] = {\n";
+    print_list(out, casedata);
+    out << "};\n\n";
+  }
 }
 
 #ifndef UCD_PATH
@@ -500,6 +518,7 @@ main() {
   out << gettype(t1) << " const decomp_index1[] = {\n";
   print_list(out, t1);
   out << "};\n\n";
+  t1.clear();
 
   out << gettype(decomp_index2) << " const decomp_index2[] = {\n";
   print_list(out, decomp_index2);
@@ -523,19 +542,9 @@ main() {
     "#include <libuni/codepoint.hpp>\n\n"
     "namespace {\n";
 
-  std::vector<codepoint_t> casedata;
-  splitbins(simple_uppercase_mapping, t1, casedata, shift);
-  simple_uppercase_mapping.clear();
-
-  out << "std::size_t const simple_uppercase_mapping_shift = " << shift << ";\n\n";
-
-  out << gettype(t1) << " const simple_uppercase_mapping_index[] = {\n";
-  print_list(out, t1);
-  out << "};\n\n";
-
-  out << "libuni::codepoint_t const simple_uppercase_mapping[] = {\n";
-  print_list(out, casedata);
-  out << "};\n\n";
+  print_case_mapping(out, simple_uppercase_mapping, "simple_uppercase_mapping");
+  print_case_mapping(out, simple_lowercase_mapping, "simple_lowercase_mapping");
+  print_case_mapping(out, simple_titlecase_mapping, "simple_titlecase_mapping");
 
   out << "} // namespace\n\n#endif\n";
 }
