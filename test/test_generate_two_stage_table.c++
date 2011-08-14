@@ -94,9 +94,9 @@ BOOST_AUTO_TEST_CASE(test_handle_decomp_mapping) {
 
   codepoint_t cp = 1;
   std::string str = "004C 004A";
-  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_REQUIRE(handle_decomp_mapping(cp, str, index, map, prefix));
   BOOST_CHECK_EQUAL(index[cp], 0);
-  BOOST_CHECK_EQUAL(map.size(), 3);
+  BOOST_REQUIRE_EQUAL(map.size(), 3);
   BOOST_CHECK_EQUAL(map[0] >> 8, 2);
   BOOST_CHECK_EQUAL(map[1], 0x4C);
   BOOST_CHECK_EQUAL(map[2], 0x4A);
@@ -104,21 +104,31 @@ BOOST_AUTO_TEST_CASE(test_handle_decomp_mapping) {
 
   cp = 2;
   str = "<compat> 0064 017E";
-  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_REQUIRE(handle_decomp_mapping(cp, str, index, map, prefix));
   BOOST_CHECK_EQUAL(index[cp], 3);
-  BOOST_CHECK_EQUAL(map.size(), 6);
+  BOOST_REQUIRE_EQUAL(map.size(), 6);
   BOOST_CHECK_EQUAL(map[3], 2 << 8);
   BOOST_CHECK_EQUAL(map[4], 0x64);
   BOOST_CHECK_EQUAL(map[5], 0x17E);
-  BOOST_CHECK_EQUAL(prefix.size(), 1);
+  BOOST_REQUIRE_EQUAL(prefix.size(), 1);
   BOOST_CHECK_EQUAL(prefix[0], "compat");
 
   cp = 3;
   str = "004C 004A";
-  BOOST_CHECK(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_REQUIRE(handle_decomp_mapping(cp, str, index, map, prefix));
   BOOST_CHECK_EQUAL(index[cp], 0);
   BOOST_CHECK_EQUAL(map.size(), 6);
   BOOST_CHECK_EQUAL(map[0] >> 8, 2);
   BOOST_CHECK_EQUAL(map[1], 0x4C);
   BOOST_CHECK_EQUAL(map[2], 0x4A);
+
+  cp = 4;
+  str = "<noBreak> 0020";
+  BOOST_REQUIRE(handle_decomp_mapping(cp, str, index, map, prefix));
+  BOOST_CHECK_EQUAL(index[cp], 6);
+  BOOST_REQUIRE_EQUAL(map.size(), 8);
+  BOOST_CHECK_EQUAL(map[6], 1 << 8 | 1);
+  BOOST_CHECK_EQUAL(map[7], 0x20);
+  BOOST_REQUIRE_EQUAL(prefix.size(), 2);
+  BOOST_CHECK_EQUAL(prefix[1], "noBreak");
 }
