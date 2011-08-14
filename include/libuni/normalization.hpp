@@ -137,83 +137,93 @@ namespace libuni {
     codepoint_t const SCount = LCount * NCount;
   }
 
+  namespace helper {
+    template<typename String, typename UTFTrait, bool Kompatibility>
+    codepoint_string_t
+    decompose(String const &in) {
+      codepoint_string_t tmp; // store codepoints before reorder
+      tmp.reserve(in.size() + 10);
+      codepoint_t stack[20];
+      std::size_t stacksize = 0;
+      typedef typename String::const_iterator iterator_t;
+      iterator_t const end = in.end();
+      iterator_t i = in.begin();
+      codepoint_t cp;
+      while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
+        stack[stacksize++] = cp;
+        while(stacksize) {
+          codepoint_t const code = stack[--stacksize];
+
+          if(hangul::SBase <= code and code < hangul::SBase + hangul::SCount) { // Hangul Syllable Decomposition
+            codepoint_t const SIndex = code - hangul::SBase;
+            codepoint_t const L = hangul::LBase + SIndex / hangul::NCount;
+            codepoint_t const V = hangul::VBase + (SIndex % hangul::NCount) / hangul::TCount;
+            codepoint_t const T = hangul::TBase + SIndex % hangul::TCount;
+            tmp.push_back(L);
+            tmp.push_back(V);
+            if(T != hangul::TBase) {
+              tmp.push_back(T);
+            }
+            continue;
+          }
+
+          std::size_t prefix;
+          codepoint_t const *begin = 0x0, *end = 0x0;
+          bool const has_mapping = helper::get_decomp_mapping(code, prefix, begin, end);
+          if(has_mapping and (Kompatibility or prefix == 0)) {
+            assert(end - begin + stacksize <  sizeof(stack)/sizeof(stack[0]));
+            while(end != begin) {
+              stack[stacksize++] = *--end;
+            }
+          }
+          else {
+            tmp.push_back(code);
+          }
+        }
+      }
+
+
+      // Canonical Ordering Algorithm  (D109)
+      std::uint8_t prev = helper::get_canonical_class(helper::get_quick_check(tmp[0]));
+      codepoint_string_t::iterator sortbeg = tmp.begin() - 1;
+      for(auto i = tmp.begin(); i != tmp.end(); ++i) {
+        std::uint8_t cur = helper::get_canonical_class(helper::get_quick_check(*i));
+
+        if(prev == 0 or cur == 0 or prev <= cur) {
+          if(prev == 0 and cur != 0) {
+            sortbeg = i - 1;
+          }
+          prev = cur;
+        }
+        else {
+          codepoint_string_t::iterator j = i - 1;
+          for(;;) {
+            std::swap(*j, *(j + 1));
+            --j;
+            if(j == sortbeg) {
+              break;
+            }
+            prev = helper::get_canonical_class(helper::get_quick_check(*j));
+            if(prev <= cur) {
+              break;
+            }
+          }
+          prev = helper::get_canonical_class(helper::get_quick_check(*i));
+        }
+      }
+
+      return tmp;
+    }
+  }
+
   template<typename String, typename UTFTrait = utf_trait<String>>
   String toNFD(String const &in) {
     if(is_nfd(in)) {
       return in;
     }
-
-    codepoint_string_t tmp; // store codepoints before reorder
-    tmp.reserve(in.size() + 10);
-    codepoint_t stack[20];
-    std::size_t stacksize = 0;
-    typedef typename String::const_iterator iterator_t;
-    iterator_t const end = in.end();
-    iterator_t i = in.begin();
-    codepoint_t cp;
-    while(UTFTrait::next_codepoint(i, end, cp) == utf_ok) {
-      stack[stacksize++] = cp;
-      while(stacksize) {
-        codepoint_t const code = stack[--stacksize];
-
-        if(hangul::SBase <= code and code < hangul::SBase + hangul::SCount) { // Hangul Syllable Decomposition
-          codepoint_t const SIndex = code - hangul::SBase;
-          codepoint_t const L = hangul::LBase + SIndex / hangul::NCount;
-          codepoint_t const V = hangul::VBase + (SIndex % hangul::NCount) / hangul::TCount;
-          codepoint_t const T = hangul::TBase + SIndex % hangul::TCount;
-          tmp.push_back(L);
-          tmp.push_back(V);
-          if(T != hangul::TBase) {
-            tmp.push_back(T);
-          }
-          continue;
-        }
-
-        std::size_t prefix;
-        codepoint_t const *begin = 0x0, *end = 0x0;
-        if(helper::get_decomp_mapping(code, prefix, begin, end) and prefix == 0) {
-          assert(end - begin + stacksize <  sizeof(stack)/sizeof(stack[0]));
-          while(end != begin) {
-            stack[stacksize++] = *--end;
-          }
-        }
-        else {
-          tmp.push_back(code);
-        }
-      }
+    else {
+      return UTFTrait::from_codepoints(helper::decompose<String, UTFTrait, false>(in));
     }
-
-
-    // Canonical Ordering Algorithm  (D109)
-    std::uint8_t prev = helper::get_canonical_class(helper::get_quick_check(tmp[0]));
-    codepoint_string_t::iterator sortbeg = tmp.begin() - 1;
-    for(auto i = tmp.begin(); i != tmp.end(); ++i) {
-      std::uint8_t cur = helper::get_canonical_class(helper::get_quick_check(*i));
-
-      if(prev == 0 or cur == 0 or prev <= cur) {
-        if(prev == 0 and cur != 0) {
-          sortbeg = i - 1;
-        }
-        prev = cur;
-      }
-      else {
-        codepoint_string_t::iterator j = i - 1;
-        for(;;) {
-          std::swap(*j, *(j + 1));
-          --j;
-          if(j == sortbeg) {
-            break;
-          }
-          prev = helper::get_canonical_class(helper::get_quick_check(*j));
-          if(prev <= cur) {
-            break;
-          }
-        }
-        prev = helper::get_canonical_class(helper::get_quick_check(*i));
-      }
-    }
-
-    return UTFTrait::from_codepoints(tmp);
   }
 
   // Normalization Form C (NFC): Canonical Decomposition, followed by Canonical Composition
@@ -233,9 +243,6 @@ namespace libuni {
   }
 
   // Normalization Form KD (NFKD): Compatibility Decomposition
-  template<typename String>
-  String toNFKD(String const &in);
-
   template<typename String, typename UTFTrait = utf_trait<String>>
   quick_check_t
   isNFKD(String const &in) {
@@ -246,6 +253,16 @@ namespace libuni {
   bool
   is_nfkd(String const &in) {
     return is_nfX<String, UTFTrait, helper::NFKD>(in);
+  }
+
+  template<typename String, typename UTFTrait = utf_trait<String>>
+  String toNFKD(String const &in) {
+    if(is_nfkd(in)) {
+      return in;
+    }
+    else {
+      return UTFTrait::from_codepoints(helper::decompose<String, UTFTrait, true>(in));
+    }
   }
 
   // Normalization Form KC (NFKC): Compatibility Decomposition, followed by Canonical Composition

@@ -32,6 +32,12 @@ BOOST_AUTO_TEST_CASE(test_isNFD) {
   BOOST_CHECK(not libuni::is_nfd(str));
 }
 
+BOOST_AUTO_TEST_CASE(test_isNFKD) {
+  std::string str = "Ångstrom";
+  BOOST_CHECK_EQUAL(libuni::isNFKD(str), libuni::No);
+  BOOST_CHECK(not libuni::is_nfkd(str));
+}
+
 BOOST_AUTO_TEST_CASE(test_get_decomp_mapping) {
   std::size_t prefix = 0;
   libuni::codepoint_t const *begin = 0x0, *end = 0x0;
@@ -48,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_get_decomp_mapping) {
 
   // ŀ
   BOOST_REQUIRE(libuni::helper::get_decomp_mapping(0x140, prefix, begin, end));
-  BOOST_CHECK_EQUAL(prefix, 1);
+  BOOST_CHECK_NE(prefix, 0);
   BOOST_REQUIRE_EQUAL(end-begin, 2);
   BOOST_CHECK_EQUAL(begin[0], 0x6C);
   BOOST_CHECK_EQUAL(begin[1], 0xB7);
@@ -59,6 +65,12 @@ BOOST_AUTO_TEST_CASE(test_get_decomp_mapping) {
   BOOST_REQUIRE_EQUAL(end-begin, 2);
   BOOST_CHECK_EQUAL(begin[0], 0xA8);
   BOOST_CHECK_EQUAL(begin[1], 0x301);
+
+  // NO-BREAK
+  BOOST_REQUIRE(libuni::helper::get_decomp_mapping(0xA0, prefix, begin, end));
+  BOOST_CHECK_NE(prefix, 0);
+  BOOST_REQUIRE_EQUAL(end-begin, 1);
+  BOOST_CHECK_EQUAL(begin[0], 0x20);
 }
 
 BOOST_AUTO_TEST_CASE(test_toNFD) {
@@ -110,35 +122,43 @@ BOOST_AUTO_TEST_CASE(test_toNFD_UCD) {
       if(not line) {
         continue;
       }
-      if(line->size() >= 3) {
+      if(line->size() >= 5) {
         libuni::codepoint_string_t const c1 = to_codepoint_string((*line)[0]);
         libuni::codepoint_string_t const c2 = to_codepoint_string((*line)[1]);
         libuni::codepoint_string_t const c3 = to_codepoint_string((*line)[2]);
+        libuni::codepoint_string_t const c4 = to_codepoint_string((*line)[3]);
+        libuni::codepoint_string_t const c5 = to_codepoint_string((*line)[4]);
 
         BOOST_CHECK(c3 == libuni::toNFD(c1));
         BOOST_CHECK(c3 == libuni::toNFD(c2));
         BOOST_CHECK(c3 == libuni::toNFD(c3));
+        BOOST_CHECK(c5 == libuni::toNFD(c4));
+        BOOST_CHECK(c5 == libuni::toNFD(c5));
+
+        BOOST_CHECK(c5 == libuni::toNFKD(c1));
+        BOOST_CHECK(c5 == libuni::toNFKD(c2));
+        BOOST_CHECK(c5 == libuni::toNFKD(c3));
+        BOOST_CHECK(c5 == libuni::toNFKD(c4));
+        BOOST_CHECK(c5 == libuni::toNFKD(c5));
 
         std::string const c1_u8 = libuni::utf8::from_codepoints(c1);
         std::string const c2_u8 = libuni::utf8::from_codepoints(c2);
         std::string const c3_u8 = libuni::utf8::from_codepoints(c3);
+        std::string const c4_u8 = libuni::utf8::from_codepoints(c4);
+        std::string const c5_u8 = libuni::utf8::from_codepoints(c5);
         BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c1_u8));
         BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c2_u8));
         BOOST_CHECK_EQUAL(c3_u8, libuni::toNFD(c3_u8));
-
-        // TODO other NF* and UTF16
-      }
-      if(line->size() >= 5) {
-        libuni::codepoint_string_t const c4 = to_codepoint_string((*line)[3]);
-        libuni::codepoint_string_t const c5 = to_codepoint_string((*line)[4]);
-
-        BOOST_CHECK(c5 == libuni::toNFD(c4));
-        BOOST_CHECK(c5 == libuni::toNFD(c5));
-
-        std::string const c4_u8 = libuni::utf8::from_codepoints(c4);
-        std::string const c5_u8 = libuni::utf8::from_codepoints(c5);
         BOOST_CHECK_EQUAL(c5_u8, libuni::toNFD(c4_u8));
         BOOST_CHECK_EQUAL(c5_u8, libuni::toNFD(c5_u8));
+
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFKD(c1_u8));
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFKD(c2_u8));
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFKD(c3_u8));
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFKD(c4_u8));
+        BOOST_CHECK_EQUAL(c5_u8, libuni::toNFKD(c5_u8));
+
+        // TODO other NF* and UTF16
       }
     }
   }
