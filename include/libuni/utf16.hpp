@@ -93,6 +93,8 @@ namespace libuni {
 
   template<>
   struct utf_trait<std::u16string> {
+    typedef std::u16string string_type;
+
     template<typename I>
     static
     utf_status

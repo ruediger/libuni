@@ -286,6 +286,8 @@ namespace libuni {
 
   template<>
   struct utf_trait<std::string> { // assume std::string is UTF-8
+    typedef std::string string_type;
+
     template<typename I>
     static
     utf_status
@@ -297,6 +299,12 @@ namespace libuni {
     std::string
     from_codepoints(codepoint_string_t const &str) {
       return utf8::from_codepoints(str);
+    }
+
+    static inline
+    void
+    append(string_type &str, codepoint_t cp) {
+      utf8::codepoint_to_utf8(cp, str);
     }
   };
 }

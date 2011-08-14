@@ -42,6 +42,8 @@ namespace libuni {
 
   template<>
   struct utf_trait<std::u32string> {
+    typedef std::u32string string_type;
+
     template<typename I>
     static
     utf_status
@@ -53,6 +55,12 @@ namespace libuni {
     std::u32string const&
     from_codepoints(std::u32string const &str) {
       return str;
+    }
+
+    static inline
+    void
+    append(string_type &s, codepoint_t cp) {
+      s.push_back(cp);
     }
   };
 }
