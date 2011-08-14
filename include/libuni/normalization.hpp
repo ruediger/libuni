@@ -43,16 +43,16 @@ namespace libuni {
     }
 
     enum normalization_form{
-      NFD  = 0x03u,
-      NFKD = 0x0Cu,
-      NFC  = 0x30u,
-      NFKC = 0xC0u
+      NFD  = 0,
+      NFKD = 2,
+      NFC  = 4,
+      NFKC = 6
     };
 
     template<normalization_form NF>
     quick_check_t
     is_allowed(std::uint16_t qc) {
-      return static_cast<quick_check_t>(libuni::helper::is_allowed(qc) & NF);
+      return static_cast<quick_check_t>((libuni::helper::is_allowed(qc) >> NF) & 3);
     }
 
     extern
