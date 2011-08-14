@@ -18,6 +18,11 @@ BOOST_AUTO_TEST_CASE(test_toUppercase) {
   BOOST_CHECK_EQUAL(libuni::toUppercase(std::string("Hёllö Wörld")), "HЁLLÖ WÖRLD");
 }
 
+BOOST_AUTO_TEST_CASE(test_isUppercase) {
+  BOOST_CHECK(libuni::isUppercase(std::string("COMBINING MARK")));
+  BOOST_CHECK(not libuni::isUppercase(std::string("Combining Mark")));
+}
+
 BOOST_AUTO_TEST_CASE(test_lowercase_mapping) {
   BOOST_CHECK_EQUAL(libuni::lowercase_mapping(0x41), 0x61); // a <- A
   BOOST_CHECK_EQUAL(libuni::lowercase_mapping(0x61), 0x61); // a <- a
@@ -27,4 +32,9 @@ BOOST_AUTO_TEST_CASE(test_lowercase_mapping) {
 BOOST_AUTO_TEST_CASE(test_toLowercase) {
   BOOST_CHECK_EQUAL(libuni::toLowercase(std::string("HelLO WOrLD")), "hello world");
   BOOST_CHECK_EQUAL(libuni::toLowercase(std::string("hЁLLÖ WöRLd")), "hёllö wörld");
+}
+
+BOOST_AUTO_TEST_CASE(test_isLowercase) {
+  BOOST_CHECK(libuni::isLowercase(std::string("combining mark")));
+  BOOST_CHECK(not libuni::isLowercase(std::string("Combining Mark")));
 }

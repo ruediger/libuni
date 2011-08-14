@@ -23,7 +23,6 @@ namespace libuni {
 
   namespace helper {
     template<typename String, typename UTFTraits = utf_trait<String>, typename CaseMapping>
-    inline
     String
     toXcase(String const &in, CaseMapping map) {
       typedef typename String::const_iterator iterator_t;
@@ -57,10 +56,40 @@ namespace libuni {
   template<typename String, typename UTFTraits = utf_trait<String>>
   String toNFKC_Casefold(String const &in);
 
+  namespace helper {
+    extern
+    bool
+    is_uppercase(codepoint_t cp);
+
+    extern
+    bool
+    is_lowercase(codepoint_t cp);
+
+    template<typename String, typename UTFTraits = utf_trait<String>, typename isCase>
+    bool
+    isXcase(String const &in, isCase is_case) {
+      typedef typename String::const_iterator iterator_t;
+      iterator_t const end = in.end();
+      iterator_t i = in.begin();
+      codepoint_t cp;
+      while(UTFTraits::next_codepoint(i, end, cp) == utf_ok) {
+        if(not is_case(cp)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
   template<typename String, typename UTFTraits = utf_trait<String>>
-  bool isUppercase(String const &in);
+  bool isUppercase(String const &in) {
+    return helper::isXcase(in, helper::is_uppercase);
+  }
   template<typename String, typename UTFTraits = utf_trait<String>>
-  bool isLowercase(String const &in);
+  bool isLowercase(String const &in) {
+    return helper::isXcase(in, helper::is_lowercase);
+  }
+
   template<typename String, typename UTFTraits = utf_trait<String>>
   bool isTitlecase(String const &in);
   template<typename String, typename UTFTraits = utf_trait<String>>
