@@ -4,7 +4,12 @@
 
 =libuni= is my attempt to implement parts of the Unicode Standard. It is written in C++ (with the use of new C++0x features).
 
-Currently support for handling UTF-8, UTF-16 (missing LE/BE, encoding), UTF-32 (missing LE/BE) and normalization is implemented. The implementation is partially inspired by Python's Unicode implementation. See [[http://icu-project.org/][ICU]] for a full Unicode implementation.
+Currently libuni provides support for handling
+- basic UTF-8, UTF-16 (missing LE/BE, encoding), UTF-32 (missing LE/BE)
+- normalization (isNF*, toNFD, toNFKD, no working toNFC/toNFKC atm)
+- case mapping (at the moment only general case mapping (1-1) and no SpecialCasing.txt support, yet)
+
+The implementation is partially inspired by Python's Unicode implementation. See [[http://icu-project.org/][ICU]] for a full Unicode implementation.
 
 * Building
 ** Requirements
