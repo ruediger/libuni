@@ -94,4 +94,4 @@ if(NOT LIBUNI_VERSION)
   set(LIBUNI_VERSION "unknown-dirty")
 endif()
 
-message(STATUS "libuni version: ${VOBSUB2SRT_VERSION}")
+message(STATUS "libuni version: ${LIBUNI_VERSION}")
