@@ -17,7 +17,7 @@ uninstall: build
 	echo 'Uninstalling' ;                       \
 	xargs rm < build/install_manifest.txt ;     \
 	else 					    \
-	echo 'Librestd does not seem to be installed.'; \
+	echo 'Libuni does not seem to be installed.'; \
 	fi
 
 test: all
