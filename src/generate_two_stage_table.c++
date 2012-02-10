@@ -439,7 +439,7 @@ namespace {
 
     out << "enum value_names {\n";
     for(std::size_t i = 0; i < value_names.size()-1; ++i) {
-      out << "  " << value_names[i] << " = " << i << ",\n";
+      out << "  " << value_names[i] << "_ = " << i << ",\n";
     }
     out << "  " << value_names[value_names.size()-1] << "_ = " << value_names.size()-1 << '\n';
     out << "};\n\n";
