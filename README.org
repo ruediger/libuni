@@ -9,7 +9,7 @@ Currently libuni provides support for handling
 - normalization (isNF*, toNFD, toNFKD, no working toNFC/toNFKC atm)
 - case mapping (at the moment only general case mapping (1-1) and no SpecialCasing.txt support, yet)
 
-The implementation is partially inspired by Python's Unicode implementation. See [[http://icu-project.org/][ICU]] for a full Unicode implementation.
+The implementation is partially inspired by Python's Unicode implementation. See [[http://icu-project.org/][ICU]] ([[http://boost.org/lib/locale][Boost.Locale]] provides a nice wrapper) or [[http://www.gnu.org/software/libunistring/][libunistring]] for a full Unicode implementation.
 
 * Building
 ** Requirements
