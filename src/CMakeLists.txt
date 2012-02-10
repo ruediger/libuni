@@ -3,6 +3,7 @@ set(generator_sources
   generate_two_stage_table.c++)
 
 add_definitions("-DUCD_PATH=\"${UCD_PATH}\"")
+file(MAKE_DIRECTORY ${libuni_SOURCE_DIR}/src/generated/)
 add_definitions("-DOUTDIR=\"${libuni_SOURCE_DIR}/src/generated/\"")
 if(UCD_VERSION)
   add_definitions("-DUCD_VERSION=\"${UCD_VERSION}\"")
