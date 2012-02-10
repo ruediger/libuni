@@ -296,7 +296,7 @@ namespace {
       std::size_t t1_max = 0;
       std::size_t t2_size = 0;
       Int t2_max = 0;
-      for(std::size_t i = 0; i < t.size(); i += size) {
+      for(std::size_t i = 0; i < t.size() - size; i += size) {
         std::vector<Int> v(t.begin() + i, t.begin() + i + size);
         std::pair<typename bincache_t::iterator, bool> const r = bincache.insert(v);
         if(r.second) {
