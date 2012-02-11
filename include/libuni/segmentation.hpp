@@ -29,11 +29,11 @@ namespace libuni {
     extern unsigned const ExtendNumLet;
   }
 
-namespace helper {
-  extern
-  unsigned
-  get_word_breaks(codepoint_t cp);
-}
+  namespace helper {
+    extern
+    unsigned
+    get_word_breaks(codepoint_t cp);
+  }
 
   /** Sets word_begin/word_end to the beginning/end of the next word. Returns false on EOS.
    * Usage:
