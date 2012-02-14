@@ -73,7 +73,7 @@ namespace libuni {
                (s == CR or s == LF or s == Newline) ) { // WB3b
         return true;
       }
-      else if(s == Extend) { // WB4
+      else if(s == Extend or s == Format) { // WB4
         s = f;
         continue;
       }
