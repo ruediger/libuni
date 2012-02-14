@@ -53,10 +53,10 @@ namespace libuni {
       return false;
     }
     word_begin = word_end;
-    ++word_end;
+    /*++word_end;
     if(word_end == end) {
       return false;
-    }
+      }*/
     unsigned s = helper::get_word_breaks(*word_end);
 
     for(;;) {
