@@ -39,7 +39,7 @@ namespace libuni {
    * Usage:
    *   iterator word_begin;
    *   iterator word_end = str.begin();
-   *   iterator const end = std.end();
+   *   iterator const end = str.end();
    *   while(next_word(word_begin, word_end, end)) {
    *     word = (word_begin, word_end);
    *   }
