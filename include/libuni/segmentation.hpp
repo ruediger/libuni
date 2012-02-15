@@ -65,7 +65,7 @@ namespace libuni {
       if(f == CR and s == LF) { // WB3
         continue;
       }
-      else if( (f == CR or f == LF or f == Newline) and // WB3a
+      else if( (f == CR or f == LF or f == Newline) or // WB3a
                (s == CR or s == LF or s == Newline) ) { // WB3b
         return true;
       }
