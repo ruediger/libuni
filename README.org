@@ -2,7 +2,7 @@
 #+TITLE: libuni
 #+AUTHOR: Rüdiger Sonderfeld <ruediger@c-plusplus.de>
 
-=libuni= is my attempt to implement parts of the Unicode Standard. It is written in C++ (with the use of new C++0x features).
+=libuni= is my attempt to implement parts of the Unicode Standard. It is written in C++ (with the use of new C++11 features).
 
 Currently libuni provides support for handling
 - basic UTF-8, UTF-16 (missing LE/BE, encoding), UTF-32 (missing LE/BE)
@@ -15,8 +15,8 @@ The implementation is partially inspired by Python's Unicode implementation. See
 * Building
 ** Requirements
 - [[http://www.cmake.org][CMake]]
-- C++-Compiler with C++0x support. =libuni= is developed on Ubuntu 11.04 with GCC 4.5.
-- [[http://boost.org][Boost]]: For usage of =libuni= only the boost headers are required. The unit tests require Boost.Test.
+- C++-Compiler with C++11 support. =libuni= is developed on Ubuntu 11.10 with GCC 4.6.
+- [[http://boost.org][Boost]]: Only required for compilation (header only) and unit tests (Boost.Test).
 - [[UCD]] (see next section)
 
 ** UCD
