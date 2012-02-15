@@ -409,7 +409,7 @@ namespace {
 
     std::ifstream in(UCD_PATH "auxiliary/WordBreakProperty" UCD_VERSION ".txt");
     if(not in) {
-      std::cerr << "Failed to open: `" UCD_PATH "auxiliary/SentenceBreakProperty" UCD_VERSION ".txt'\n";
+      std::cerr << "Failed to open: `" UCD_PATH "auxiliary/WordBreakProperty" UCD_VERSION ".txt'\n";
       return false;
     }
     for(boost::optional<std::vector<std::string>> line; in; line = parse_line(in)) {
