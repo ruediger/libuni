@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include <libuni/segmentation.hpp>
 
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -28,8 +29,8 @@ namespace {
 typedef std::vector<libuni::codepoint_t> codepoints;
 typedef std::pair<codepoints, std::vector<codepoints>> breaks_t;
 
-bool get_next_break_test(std::ifstream &in, breaks_t &breaks) {
-  std::string line;
+/// Read and parse line from UCD test cases.
+bool get_next_break_test(std::ifstream &in, breaks_t &breaks, std::string &line) {
   while(std::getline(in, line)) {
     if(not line.empty() and line[0] != '#') {
       break;
@@ -69,9 +70,7 @@ bool get_next_break_test(std::ifstream &in, breaks_t &breaks) {
 
 } // namespace
 
-#include <iostream> // DEBUG
-
-namespace std { // evil!
+namespace std { // evil! But necessary to make Boost Test print vectors and pairs
 template<typename Char, class Traits, typename T, class Alloc>
 std::basic_ostream<Char, Traits>&
 operator<<(std::basic_ostream<Char, Traits> &out, std::vector<T, Alloc> const &obj) {
@@ -95,17 +94,15 @@ std::basic_ostream<Char, Traits>&
 operator<<(std::basic_ostream<Char, Traits> &out, std::pair<Lhs, Rhs> const &obj) {
   return out << "( " << obj.first << ", " << obj.second << " )";
 }
-}
+} // namespace std
 
 BOOST_AUTO_TEST_CASE(test_WordBreakTest) {
   using namespace libuni;
   std::ifstream in(UCD_PATH "auxiliary/WordBreakTest.txt");
   breaks_t breaks;
-  std::cout << libuni::helper::get_word_breaks(137) << std::endl;
-  while(get_next_break_test(in, breaks)) {
-    std::cout << breaks << std::endl; // DEBUG
-
-
+  std::string line;
+  while(get_next_break_test(in, breaks, line)) {
+    //std::cout << line << '\n' << breaks << std::endl; // DEBUG
     auto word_begin = breaks.first.cbegin();
     auto word_end = word_begin;
     auto end = breaks.first.cend();
