@@ -83,31 +83,37 @@ namespace libuni {
       }
       else if( f == ALetter and (s == MidLetter or s == MidNumLet) ) { // WB6/7
         I t = word_end;
-        if(++t == end) {
-          return true;
-        }
-        unsigned const n = helper::get_word_breaks(*t);
+        unsigned n;
+        do {
+          if(++t == end) {
+            return true;
+          }
+          n = helper::get_word_breaks(*t);
+        } while(n == Extend or n == Format); // (WB4)
         if(n == ALetter) {
           s = n;
           word_end = t;
           continue;
         }
-        else { // WB14
+        else { // (WB14)
           return true;
         }
       }
       else if(f == Numeric and (s == MidNum or s == MidNumLet)) { // WB11/12
         I t = word_end;
-        if(++t == end) {
-          return true;
-        }
-        unsigned const n = helper::get_word_breaks(*t);
+        unsigned n;
+        do {
+          if(++t == end) {
+            return true;
+          }
+          n = helper::get_word_breaks(*t);
+        } while(n == Extend or n == Format); // (WB4)
         if(n == Numeric) {
           s = n;
           word_end = t;
           continue;
         }
-        else { // WB14
+        else { // (WB14)
           return true;
         }
       }
