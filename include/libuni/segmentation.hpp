@@ -53,10 +53,6 @@ namespace libuni {
       return false;
     }
     word_begin = word_end;
-    /*++word_end;
-    if(word_end == end) {
-      return false;
-      }*/
     unsigned s = helper::get_word_breaks(*word_end);
 
     for(;;) {
@@ -88,7 +84,6 @@ namespace libuni {
       else if( f == ALetter and (s == MidLetter or s == MidNumLet) ) { // WB6/7
         I t = word_end;
         if(++t == end) {
-          word_end = t;
           return true;
         }
         unsigned const n = helper::get_word_breaks(*word_end);
@@ -97,11 +92,13 @@ namespace libuni {
           word_end = t;
           continue;
         }
+        else { // WB14
+          return true;
+        }
       }
       else if(f == Numeric and (s == MidNum or s == MidNumLet)) { // WB11/12
         I t = word_end;
         if(++t == end) {
-          word_end = t;
           return true;
         }
         unsigned const n = helper::get_word_breaks(*word_end);
@@ -109,6 +106,9 @@ namespace libuni {
           s = n;
           word_end = t;
           continue;
+        }
+        else { // WB14
+          return true;
         }
       }
       else if( f == Katakana and s == Katakana ) { // WB13
