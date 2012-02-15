@@ -86,7 +86,7 @@ namespace libuni {
         if(++t == end) {
           return true;
         }
-        unsigned const n = helper::get_word_breaks(*word_end);
+        unsigned const n = helper::get_word_breaks(*t);
         if(n == ALetter) {
           s = n;
           word_end = t;
@@ -101,7 +101,7 @@ namespace libuni {
         if(++t == end) {
           return true;
         }
-        unsigned const n = helper::get_word_breaks(*word_end);
+        unsigned const n = helper::get_word_breaks(*t);
         if(n == Numeric) {
           s = n;
           word_end = t;
